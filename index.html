@@ -156,7 +156,10 @@
         }
 
         .item {
-            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 10px 18px;
             margin: 4px 8px;
             background: #0f0f0f;
             border-radius: 40px;
@@ -168,6 +171,31 @@
         .item:hover {
             background: #1f1a0a;
             transform: translateX(4px);
+        }
+
+        .item-icon {
+            width: 36px;
+            height: 36px;
+            background: #1a1508;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            border: 1px solid #d4af37;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .item-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-name {
+            flex: 1;
+            font-weight: 500;
         }
 
         table {
@@ -183,6 +211,7 @@
             padding: 14px 12px;
             border-bottom: 1px solid #2a2a2a;
             text-align: left;
+            vertical-align: middle;
         }
 
         th {
@@ -198,6 +227,11 @@
 
         .price {
             color: #ffdd88;
+            font-weight: bold;
+        }
+
+        .buyer-price {
+            color: #88ffaa;
             font-weight: bold;
         }
 
@@ -224,6 +258,32 @@
             margin: 20px 0;
         }
 
+        .table-with-icon {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .table-icon {
+            width: 32px;
+            height: 32px;
+            background: #1a1508;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            border: 1px solid #d4af37;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .table-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
         footer {
             text-align: center;
             margin-top: 30px;
@@ -237,6 +297,21 @@
             .container { padding: 16px; }
             .controls { flex-direction: column; align-items: stretch; }
             th, td { padding: 8px; font-size: 12px; }
+            .table-icon { width: 24px; height: 24px; font-size: 0.8rem; }
+        }
+
+        .buyer-section {
+            margin-top: 20px;
+            padding: 16px;
+            background: #0a0a0a;
+            border-radius: 20px;
+            border: 1px solid #d4af37;
+        }
+
+        .buyer-title {
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            color: #efcd7b;
         }
     </style>
 </head>
@@ -295,7 +370,8 @@
         <thead>
         <tr>
             <th id="thItem">Item</th>
-            <th id="thPrice">Price</th>
+            <th id="thPrice">Auction Price</th>
+            <th id="thBuyerPrice">Buyer Price</th>
             <th id="thAmount">Amount</th>
             <th id="thSeller">Seller</th>
             <th id="thTimeLeft">Time left</th>
@@ -303,7 +379,14 @@
         </thead>
         <tbody></tbody>
     </table>
-    <footer>Black Gold Auction Monitor | Data from EXBO database & auction API</footer>
+
+    <div id="buyerInfoSection" class="buyer-section" style="display:none;">
+        <div class="buyer-title" id="buyerTitle">Buyer / Fence Price</div>
+        <div id="buyerPriceDisplay" style="font-size:1.2rem; font-weight:bold;"></div>
+        <div class="warning-text" id="buyerNote" style="margin-top:8px;"></div>
+    </div>
+
+    <footer>Black Gold Auction Monitor | Data from EXBO database & auction API | Buyer prices are estimated based on item type</footer>
 </div>
 
 <script>
@@ -311,6 +394,7 @@
     let currentLots = [];
     let currentItemName = "";
     let currentItemId = "";
+    let currentItemIcon = "";
     let emissionTimerInterval;
     let currentLang = "ru";
 
@@ -341,14 +425,18 @@
             checkToken: "Пожалуйста, вставьте ваш API токен в поле выше!",
             enterItemId: "Введите ID предмета",
             thItem: "Предмет",
-            thPrice: "Цена",
+            thPrice: "Цена аукциона",
+            thBuyerPrice: "Цена скупщика",
             thAmount: "Кол-во",
             thSeller: "Продавец",
             thTimeLeft: "Осталось",
             priceSymbol: "⚡",
             hours: "ч",
             minutes: "м",
-            noLots: "Ничего не найдено"
+            noLots: "Ничего не найдено",
+            buyerTitle: "Цена у скупщика (фунт)",
+            buyerNote: "Примерная цена продажи торговцу. Реальная цена может отличаться в зависимости от типа предмета.",
+            unknownPrice: "Цена не определена"
         },
         en: {
             mainTitle: "STALCRAFT AUCTION HOUSE",
@@ -376,14 +464,18 @@
             checkToken: "Please paste your API token in the field above!",
             enterItemId: "Enter item ID",
             thItem: "Item",
-            thPrice: "Price",
+            thPrice: "Auction Price",
+            thBuyerPrice: "Buyer Price",
             thAmount: "Amount",
             thSeller: "Seller",
             thTimeLeft: "Time left",
             priceSymbol: "⚡",
             hours: "h",
             minutes: "m",
-            noLots: "Nothing found"
+            noLots: "Nothing found",
+            buyerTitle: "Buyer / Fence Price",
+            buyerNote: "Estimated price when selling to a fence NPC. Actual price may vary by item type.",
+            unknownPrice: "Price unknown"
         }
     };
 
@@ -407,9 +499,12 @@
         document.getElementById('manualBtn').innerText = t('manualBtn');
         document.getElementById('thItem').innerText = t('thItem');
         document.getElementById('thPrice').innerText = t('thPrice');
+        document.getElementById('thBuyerPrice').innerText = t('thBuyerPrice');
         document.getElementById('thAmount').innerText = t('thAmount');
         document.getElementById('thSeller').innerText = t('thSeller');
         document.getElementById('thTimeLeft').innerText = t('thTimeLeft');
+        document.getElementById('buyerTitle').innerText = t('buyerTitle');
+        document.getElementById('buyerNote').innerText = t('buyerNote');
         
         if (allItems.length > 0) {
             const container = document.getElementById('itemList');
@@ -457,6 +552,33 @@
         emissionTimerInterval = setInterval(loadEmissionInfo, 60000);
     }
 
+    function getIconUrl(itemId, category) {
+        if (!itemId) return null;
+        let catPath = category;
+        if (category === 'weapon') catPath = 'weapon';
+        else if (category === 'armor') catPath = 'armor';
+        else if (category === 'artifact') catPath = 'artefact';
+        else if (category === 'supply') catPath = 'consumables';
+        else catPath = 'misc';
+        return `https://raw.githubusercontent.com/EXBO-Studio/stalcraft-database/main/ru/icons/${catPath}/${itemId}.png`;
+    }
+
+    function getBuyerPrice(itemCategory, auctionPrice) {
+        if (!auctionPrice) return null;
+        switch(itemCategory) {
+            case 'weapon':
+                return Math.floor(auctionPrice * 0.35);
+            case 'armor':
+                return Math.floor(auctionPrice * 0.30);
+            case 'artifact':
+                return Math.floor(auctionPrice * 0.40);
+            case 'supply':
+                return Math.floor(auctionPrice * 0.25);
+            default:
+                return Math.floor(auctionPrice * 0.20);
+        }
+    }
+
     async function loadItems() {
         const statusDiv = document.getElementById('status');
         statusDiv.textContent = t('loadingItems');
@@ -465,7 +587,8 @@
             if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
             const data = await res.json();
 
-            allItems = data.map(item => {
+            allItems = [];
+            for (const item of data) {
                 const path = item.data || '';
                 let category = 'misc';
                 if (path.includes('/weapon/')) category = 'weapon';
@@ -473,13 +596,18 @@
                 else if (path.includes('/artefact/') || path.includes('/artifact/')) category = 'artifact';
                 else if (path.includes('/supply/')) category = 'supply';
 
-                return {
-                    id: path.split('/').pop().replace('.json', ''),
+                const itemId = path.split('/').pop().replace('.json', '');
+                const iconUrl = getIconUrl(itemId, category);
+                
+                allItems.push({
+                    id: itemId,
                     name: item.name?.lines?.ru || 'Без названия',
-                    category: category
-                };
-            }).filter(i => i.name !== 'Без названия')
-              .sort((a, b) => a.name.localeCompare(b.name));
+                    category: category,
+                    iconUrl: iconUrl
+                });
+            }
+            
+            allItems = allItems.filter(i => i.name !== 'Без названия').sort((a, b) => a.name.localeCompare(b.name));
 
             renderItems(allItems);
             statusDiv.innerHTML = `<span class="success">${t('itemsLoaded')}: ${allItems.length}</span>`;
@@ -499,8 +627,26 @@
         items.forEach(item => {
             const div = document.createElement('div');
             div.className = 'item';
-            div.textContent = item.name;
-            div.onclick = () => fetchLots(item.id, item.name);
+            
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'item-icon';
+            if (item.iconUrl) {
+                const img = document.createElement('img');
+                img.src = item.iconUrl;
+                img.onerror = () => { iconDiv.innerHTML = '📦'; iconDiv.style.fontSize = '1.3rem'; };
+                iconDiv.appendChild(img);
+            } else {
+                iconDiv.innerHTML = '📦';
+                iconDiv.style.fontSize = '1.3rem';
+            }
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.className = 'item-name';
+            nameSpan.textContent = item.name;
+            
+            div.appendChild(iconDiv);
+            div.appendChild(nameSpan);
+            div.onclick = () => fetchLots(item.id, item.name, item.category, item.iconUrl);
             container.appendChild(div);
         });
     }
@@ -523,10 +669,15 @@
             alert(t('enterItemId'));
             return;
         }
-        await fetchLots(id, id);
+        const foundItem = allItems.find(i => i.id === id);
+        if (foundItem) {
+            await fetchLots(foundItem.id, foundItem.name, foundItem.category, foundItem.iconUrl);
+        } else {
+            await fetchLots(id, id, 'misc', null);
+        }
     }
 
-    async function fetchLots(itemId, itemName) {
+    async function fetchLots(itemId, itemName, itemCategory, itemIcon) {
         const token = document.getElementById('apiToken').value.trim();
         if (!token) {
             alert(t('checkToken'));
@@ -537,11 +688,15 @@
         const statusDiv = document.getElementById('status');
         const table = document.getElementById('lotsTable');
         const tbody = table.querySelector('tbody');
+        const buyerSection = document.getElementById('buyerInfoSection');
 
         currentItemId = itemId;
         currentItemName = itemName;
+        currentItemIcon = itemIcon || '';
+        
         statusDiv.textContent = `${t('loadingLots')} "${itemName}"... (15 sec max)`;
         table.style.display = 'none';
+        buyerSection.style.display = 'none';
         tbody.innerHTML = '';
 
         const controller = new AbortController();
@@ -575,6 +730,18 @@
 
             statusDiv.innerHTML = `<span class="success">${itemName} — ${currentLots.length} ${t('lotsFound')}</span>`;
             table.style.display = 'table';
+            
+            const avgPrice = currentLots.reduce((sum, lot) => sum + (lot.price || 0), 0) / currentLots.length;
+            const buyerPrice = getBuyerPrice(itemCategory, avgPrice);
+            
+            if (buyerPrice) {
+                buyerSection.style.display = 'block';
+                document.getElementById('buyerPriceDisplay').innerHTML = `<span class="buyer-price">${buyerPrice.toLocaleString()} ${t('priceSymbol')}</span>`;
+            } else {
+                document.getElementById('buyerPriceDisplay').innerHTML = `<span>${t('unknownPrice')}</span>`;
+                buyerSection.style.display = 'block';
+            }
+            
             displayLots();
         } catch (e) {
             clearTimeout(timeout);
@@ -590,6 +757,11 @@
     function displayLots() {
         const tbody = document.querySelector('#lotsTable tbody');
         tbody.innerHTML = '';
+        
+        let currentCategory = 'misc';
+        const foundItem = allItems.find(i => i.id === currentItemId);
+        if (foundItem) currentCategory = foundItem.category;
+        
         currentLots.forEach(lot => {
             const row = document.createElement('tr');
             let timeLeft = "—";
@@ -598,9 +770,20 @@
                 const m = Math.floor((lot.timeLeft % 3600) / 60);
                 timeLeft = `${h}${t('hours')} ${m}${t('minutes')}`;
             }
+            
+            const buyerPrice = getBuyerPrice(currentCategory, lot.price);
+            
             row.innerHTML = `
-                <td>${currentItemName}</td>
+                <td>
+                    <div class="table-with-icon">
+                        <div class="table-icon">
+                            ${currentItemIcon ? `<img src="${currentItemIcon}" onerror="this.style.display='none';this.parentElement.innerHTML='📦'">` : '📦'}
+                        </div>
+                        <span>${currentItemName}</span>
+                    </div>
+                </td>
                 <td class="price">${lot.price?.toLocaleString() || 0} ${t('priceSymbol')}</td>
+                <td class="buyer-price">${buyerPrice ? buyerPrice.toLocaleString() + ' ' + t('priceSymbol') : '—'}</td>
                 <td>${lot.amount || 1}</td>
                 <td>${lot.seller || '—'}</td>
                 <td>${timeLeft}</td>
