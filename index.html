@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сталкрафт Аукцион | Все предметы из базы EXBO</title>
+    <title>Stalcraft Auction House - Black Gold Edition</title>
     <style>
         * {
             margin: 0;
@@ -13,15 +13,15 @@
 
         body {
             background-color: #0a0a0a;
-            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, monospace;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
             color: #d4af37;
             padding: 20px;
-            background-image: radial-gradient(circle at 15% 30%, rgba(212, 175, 55, 0.08) 2%, transparent 2.5%),
-                              radial-gradient(circle at 75% 70%, rgba(212, 175, 55, 0.05) 1.8%, transparent 2%);
+            background-image: radial-gradient(circle at 15% 30%, rgba(212, 175, 55, 0.06) 2%, transparent 2.5%),
+                              radial-gradient(circle at 75% 70%, rgba(212, 175, 55, 0.04) 1.8%, transparent 2%);
             background-size: 55px 55px, 70px 70px;
         }
 
-        .auction-container {
+        .container {
             max-width: 1600px;
             margin: 0 auto;
             background: rgba(0, 0, 0, 0.85);
@@ -29,561 +29,616 @@
             border: 2px solid #d4af37;
             border-radius: 32px;
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.3), inset 0 0 10px rgba(212, 175, 55, 0.1);
-            padding: 20px 24px 32px;
+            padding: 24px 28px 32px;
         }
 
-        /* заголовок */
-        .gold-header {
+        h1 {
             text-align: center;
-            border-bottom: 2px solid #d4af37;
-            padding-bottom: 18px;
-            margin-bottom: 28px;
-        }
-        .gold-header h1 {
-            font-size: 2.6rem;
-            letter-spacing: 4px;
+            font-size: 2.4rem;
+            letter-spacing: 3px;
             text-transform: uppercase;
             font-weight: 700;
             text-shadow: 0 0 6px #b48c2c;
-        }
-        .gold-header p {
-            font-size: 0.9rem;
-            color: #e4c468;
-            margin-top: 8px;
-        }
-        .api-badge {
-            display: inline-block;
-            background: #1e1a0c;
-            border: 1px solid #d4af37;
-            border-radius: 40px;
-            padding: 4px 12px;
-            font-size: 0.7rem;
-            margin-top: 8px;
+            border-bottom: 2px solid #d4af37;
+            padding-bottom: 18px;
+            margin-bottom: 24px;
         }
 
-        /* панель фильтров */
-        .filter-sort-panel {
-            background: #030303cc;
-            border: 1px solid #d4af37;
-            border-radius: 28px;
-            padding: 20px 24px;
-            margin-bottom: 32px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            justify-content: space-between;
-            align-items: flex-end;
+        .lang-switch {
+            text-align: right;
+            margin-bottom: 20px;
         }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-width: 150px;
-        }
-        .filter-group label {
-            font-size: 0.85rem;
-            font-weight: bold;
-            letter-spacing: 1px;
-            color: #efcd7b;
-            text-transform: uppercase;
-        }
-        select, .sort-buttons button, .reset-filter {
+
+        .lang-btn {
             background: #0f0f0f;
             border: 1.5px solid #d4af37;
             color: #ffeaac;
-            padding: 8px 14px;
+            padding: 6px 16px;
             border-radius: 40px;
             font-weight: bold;
-            font-family: monospace;
-            font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
+            margin-left: 10px;
         }
-        select:hover, .sort-buttons button:hover, .reset-filter:hover {
-            border-color: #f5cb5c;
-            background: #1f1a0a;
-            box-shadow: 0 0 6px #d4af37;
-        }
-        .sort-buttons {
-            display: flex;
-            gap: 12px;
-            background: transparent;
-            border: none;
-            padding: 0;
-        }
-        .sort-buttons button.active-sort {
+
+        .lang-btn.active {
             background: #d4af37;
             color: #0a0a0a;
             border-color: #ffdfa0;
         }
-        .reset-filter {
-            background: #1a1508;
+
+        .lang-btn:hover {
+            border-color: #f5cb5c;
+            background: #1f1a0a;
         }
 
-        /* сетка карточек */
-        .items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 24px;
-            margin-top: 12px;
-        }
-
-        /* карточка */
-        .item-card {
-            background: #0c0b07e6;
-            border: 1.8px solid #d4af37;
-            border-radius: 28px;
-            padding: 18px 16px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .item-card:hover {
-            transform: translateY(-4px);
-            border-color: #f3cd81;
-            box-shadow: 0 8px 22px rgba(212, 175, 55, 0.25);
-        }
-        .card-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            border-bottom: 1px dashed #b48c2c;
-            padding-bottom: 10px;
-        }
-        .item-icon {
-            width: 52px;
-            height: 52px;
-            background: #1e1a0c;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            border: 1px solid #d4af37;
-            overflow: hidden;
-        }
-        .item-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .item-name {
-            font-size: 1.3rem;
+        .emission-box {
+            font-size: 16px;
             font-weight: bold;
-            color: #f5de9c;
-            word-break: break-word;
+            margin: 15px 0;
+            padding: 14px 20px;
+            background: #0f0f0f;
+            border-radius: 40px;
+            border-left: 4px solid #d4af37;
         }
-        .item-details {
+
+        .controls {
             display: flex;
             flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 10px;
-            font-size: 0.85rem;
-        }
-        .item-price {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #ffdd88;
-            background: #2a230f;
-            padding: 4px 12px;
-            border-radius: 36px;
-            text-align: center;
-        }
-        .item-category {
-            background: #1a1508;
-            border-radius: 18px;
-            padding: 4px 12px;
-            text-transform: uppercase;
-            font-size: 0.7rem;
-            font-weight: bold;
-        }
-        .info-button {
-            background: transparent;
-            border: 1px solid #d4af37;
-            border-radius: 40px;
-            padding: 8px;
-            font-weight: bold;
-            color: #eed985;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .info-button:hover {
-            background: #d4af37;
-            color: #0a0a0a;
+            gap: 12px;
+            margin: 20px 0;
+            align-items: center;
         }
 
-        /* модальное окно */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(8px);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+        select, input, button {
+            padding: 10px 16px;
+            border-radius: 40px;
+            border: 1.5px solid #d4af37;
+            background: #0f0f0f;
+            color: #ffeaac;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
         }
-        .modal-content {
-            background: #0b0902ed;
-            border: 3px ridge #d4af37;
-            border-radius: 48px;
-            max-width: 500px;
-            width: 85%;
-            padding: 28px 24px;
-            position: relative;
+
+        input {
+            cursor: text;
+            flex: 1;
+            min-width: 200px;
         }
-        .modal-close {
-            position: absolute;
-            top: 16px; right: 24px;
-            font-size: 32px;
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #f5cb5c;
+            box-shadow: 0 0 6px #d4af37;
+        }
+
+        button:hover {
+            background: #d4af37;
+            color: #0a0a0a;
+            border-color: #ffdfa0;
+        }
+
+        .token-section {
+            background: #0f0f0f;
+            border-radius: 28px;
+            padding: 18px 20px;
+            margin: 20px 0;
+            border: 1px solid #d4af37;
+        }
+
+        .token-section strong {
+            color: #efcd7b;
+        }
+
+        .manual-section {
+            background: #0f0f0f;
+            border-radius: 28px;
+            padding: 18px 20px;
+            margin: 20px 0;
+            border: 1px solid #d4af37;
+        }
+
+        .warning-text {
+            color: #ffaa66;
+            font-size: 0.8rem;
+            margin-top: 8px;
+        }
+
+        .item-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            border: 1px solid #2a2a2a;
+            border-radius: 20px;
+            background: #050505;
+        }
+
+        .item {
+            padding: 12px 18px;
+            margin: 4px 8px;
+            background: #0f0f0f;
+            border-radius: 40px;
+            cursor: pointer;
+            border-left: 4px solid #d4af37;
+            transition: all 0.15s;
+        }
+
+        .item:hover {
+            background: #1f1a0a;
+            transform: translateX(4px);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #0f0f0f;
+            margin-top: 20px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 12px;
+            border-bottom: 1px solid #2a2a2a;
+            text-align: left;
+        }
+
+        th {
+            background: #1a1508;
             color: #d4af37;
             cursor: pointer;
-            background: none;
-            border: none;
+            font-weight: bold;
         }
-        .loader, .error-msg {
-            text-align: center;
-            padding: 60px;
-            font-size: 1.4rem;
-            color: #d4af37;
+
+        th:hover {
+            background: #2a2412;
         }
+
+        .price {
+            color: #ffdd88;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #ff8866;
+        }
+
+        .success {
+            color: #88ffaa;
+        }
+
+        .status-area {
+            margin: 15px 0;
+            min-height: 40px;
+            font-weight: bold;
+        }
+
         .no-results {
             text-align: center;
-            padding: 60px;
-            font-size: 1.5rem;
+            padding: 40px;
             color: #b49450;
             border: 1px dashed #d4af37;
-            border-radius: 48px;
+            border-radius: 28px;
+            margin: 20px 0;
         }
+
         footer {
             text-align: center;
             margin-top: 30px;
             font-size: 0.7rem;
             color: #ad8f47;
             border-top: 1px solid #5f4c1a;
-            padding-top: 16px;
+            padding-top: 18px;
         }
+
         @media (max-width: 700px) {
-            .auction-container { padding: 16px; }
-            .filter-sort-panel { flex-direction: column; align-items: stretch; }
+            .container { padding: 16px; }
+            .controls { flex-direction: column; align-items: stretch; }
+            th, td { padding: 8px; font-size: 12px; }
         }
     </style>
 </head>
 <body>
-
-<div class="auction-container">
-    <div class="gold-header">
-        <h1>⚔️ СТАЛКРАФТ АУКЦИОН ⚔️</h1>
-        <p>Прямая загрузка базы предметов из официального репозитория EXBO</p>
-        <div class="api-badge">📡 Данные: stalcraft-database (GitHub)</div>
+<div class="container">
+    <div class="lang-switch">
+        <button class="lang-btn active" data-lang="ru">РУССКИЙ</button>
+        <button class="lang-btn" data-lang="en">ENGLISH</button>
     </div>
 
-    <div class="filter-sort-panel">
-        <div class="filter-group">
-            <label>📁 КАТЕГОРИЯ</label>
-            <select id="categoryFilter">
-                <option value="all">Все предметы</option>
-            </select>
+    <h1 id="mainTitle">STALCRAFT AUCTION HOUSE</h1>
+
+    <div id="emissionInfo" class="emission-box">Emission: Loading data...</div>
+
+    <div class="controls">
+        <select id="region">
+            <option value="RU">RU</option>
+            <option value="EU">EU</option>
+        </select>
+        <input type="text" id="search" placeholder="Search by name..." style="width:300px;" onkeypress="if(event.key==='Enter') searchItems()">
+        <button id="searchBtn">Search</button>
+    </div>
+
+    <div class="controls">
+        <select id="categoryFilter">
+            <option value="">All categories</option>
+            <option value="weapon">Weapon</option>
+            <option value="armor">Armor</option>
+            <option value="artifact">Artifacts</option>
+            <option value="supply">Supplies</option>
+            <option value="misc">Other</option>
+        </select>
+        <div style="flex:1"></div>
+        <div class="sort-buttons" style="display:flex; gap:8px;">
+            <button id="sortPriceUp">Price ↑</button>
+            <button id="sortPriceDown">Price ↓</button>
         </div>
-        <div class="filter-group">
-            <label>💰 СОРТИРОВКА</label>
-            <div class="sort-buttons">
-                <button id="sortByNameBtn">🔤 ПО ИМЕНИ</button>
-                <button id="sortByPriceUpBtn">⬆ ПО ЦЕНЕ ↑</button>
-                <button id="sortByPriceDownBtn">⬇ ПО ЦЕНЕ ↓</button>
-            </div>
-        </div>
-        <div class="filter-group">
-            <label>🔄 УПРАВЛЕНИЕ</label>
-            <button class="reset-filter" id="resetFilters">СБРОСИТЬ ВСЁ</button>
-        </div>
     </div>
 
-    <div id="itemsGrid" class="items-grid">
-        <div class="loader">🔮 Загрузка всех предметов из базы EXBO...<br>⏳ Первый запуск может занять 5-10 секунд</div>
+    <div class="token-section">
+        <strong id="tokenLabel">Authorization (required):</strong><br>
+        <input type="password" id="apiToken" placeholder="Paste your API token here" style="width:100%; margin-top:8px;">
+        <div id="tokenWarning" class="warning-text">Token is required to fetch auction lots</div>
     </div>
-    <footer>⚜️ Все предметы из игры (оружие, артефакты, броня, ресурсы). Цены демонстрационные — для реальных цен нужен OAuth-доступ к API аукциона ⚜️</footer>
-</div>
 
-<div id="infoModal" class="modal">
-    <div class="modal-content">
-        <button class="modal-close" id="closeModalBtn">&times;</button>
-        <h3 id="modalItemName">Предмет</h3>
-        <div id="modalItemInfo"></div>
+    <div class="manual-section">
+        <strong id="manualLabel">Manual mode (most reliable):</strong><br>
+        <input type="text" id="manualId" placeholder="Item ID (zyv9, atom, etc.)" style="width:70%; margin-top:8px;" onkeypress="if(event.key==='Enter') fetchByManualId()">
+        <button id="manualBtn">SHOW LOTS</button>
     </div>
+
+    <div id="itemList" class="item-list"></div>
+    <div id="status" class="status-area"></div>
+
+    <table id="lotsTable" style="display:none;">
+        <thead>
+        <tr>
+            <th id="thItem">Item</th>
+            <th id="thPrice">Price</th>
+            <th id="thAmount">Amount</th>
+            <th id="thSeller">Seller</th>
+            <th id="thTimeLeft">Time left</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <footer>Black Gold Auction Monitor | Data from EXBO database & auction API</footer>
 </div>
 
 <script>
-    // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----------
-    let allItems = [];        // здесь будут храниться все предметы после загрузки
-    let currentCategory = "all";
-    let currentSort = "none"; // none, name, priceUp, priceDown
+    let allItems = [];
+    let currentLots = [];
+    let currentItemName = "";
+    let currentItemId = "";
+    let emissionTimerInterval;
+    let currentLang = "ru";
 
-    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
-    function getCategoryDisplay(catKey) {
-        const map = {
-            'weapon': 'Оружие',
-            'armor': 'Броня',
-            'artefact': 'Артефакт',
-            'consumables': 'Расходники',
-            'materials': 'Материалы',
-            'parts': 'Детали',
-            'containers': 'Контейнеры',
-            'tools': 'Инструменты',
-            'other': 'Прочее'
-        };
-        return map[catKey] || catKey || 'Предмет';
-    }
-
-    // Генерация случайной цены (для демонстрации, т.к. API аукциона требует OAuth)
-    // В будущем здесь можно заменить на realPrice из API аукциона
-    function generateMockPrice(itemId, category) {
-        const hash = (itemId || '').split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a}, 0);
-        const base = Math.abs(hash % 50000) + 500;
-        if (category === 'artefact') return Math.floor(base * 2.5);
-        if (category === 'weapon') return Math.floor(base * 1.8);
-        return Math.floor(base);
-    }
-
-    // Получение иконки предмета (из GitHub raw)
-    function getIconUrl(itemId, category, subcat) {
-        if (!itemId) return null;
-        // правильный путь в репозитории EXBO: ru/icons/категория/подкатегория/id.png
-        let catPath = category;
-        if (category === 'weapon' && subcat) catPath = `weapon/${subcat}`;
-        else if (category === 'armor') catPath = 'armor';
-        else if (category === 'artefact') catPath = 'artefact';
-        else if (category === 'consumables') catPath = 'consumables';
-        else catPath = category;
-        
-        return `https://github.com/EXBO-Studio/stalcraft-database/raw/main/ru/icons/${catPath}/${itemId}.png`;
-    }
-
-    // Отображение карточек
-    function renderItems() {
-        const grid = document.getElementById('itemsGrid');
-        if (!allItems.length) {
-            grid.innerHTML = '<div class="loader">📦 Загрузка предметов... проверьте соединение</div>';
-            return;
+    const translations = {
+        ru: {
+            mainTitle: "СТАЛКРАФТ АУКЦИОН",
+            emissionLoading: "Выброс: загрузка данных...",
+            emissionLast: "Последний выброс (RU)",
+            emissionAgo: "назад",
+            emissionActive: "ИДЁТ ВЫБРОС",
+            emissionNone: "Нет выброса",
+            searchPlaceholder: "Поиск по названию...",
+            searchBtn: "Искать",
+            tokenLabel: "Авторизация (обязательно):",
+            tokenPlaceholder: "Вставьте ваш API токен",
+            tokenWarning: "Токен нужен для загрузки лотов!",
+            manualLabel: "Ручной режим (самый надёжный):",
+            manualPlaceholder: "ID предмета (zyv9, atom и т.д.)",
+            manualBtn: "ПОКАЗАТЬ ЛОТЫ",
+            loadingItems: "Загружаем список предметов...",
+            itemsLoaded: "Загружено предметов",
+            noItemsFound: "Ничего не найдено",
+            loadingLots: "Загрузка лотов для",
+            lotsEmpty: "лотов сейчас нет",
+            lotsFound: "лотов",
+            fetchError: "Ошибка загрузки лотов",
+            timeoutError: "Запрос превысил время ожидания (15 сек). Попробуйте еще раз.",
+            checkToken: "Пожалуйста, вставьте ваш API токен в поле выше!",
+            enterItemId: "Введите ID предмета",
+            thItem: "Предмет",
+            thPrice: "Цена",
+            thAmount: "Кол-во",
+            thSeller: "Продавец",
+            thTimeLeft: "Осталось",
+            priceSymbol: "⚡",
+            hours: "ч",
+            minutes: "м",
+            noLots: "Ничего не найдено"
+        },
+        en: {
+            mainTitle: "STALCRAFT AUCTION HOUSE",
+            emissionLoading: "Emission: loading data...",
+            emissionLast: "Last emission (RU)",
+            emissionAgo: "ago",
+            emissionActive: "EMISSION ACTIVE",
+            emissionNone: "No emission",
+            searchPlaceholder: "Search by name...",
+            searchBtn: "Search",
+            tokenLabel: "Authorization (required):",
+            tokenPlaceholder: "Paste your API token here",
+            tokenWarning: "Token is required to fetch auction lots",
+            manualLabel: "Manual mode (most reliable):",
+            manualPlaceholder: "Item ID (zyv9, atom, etc.)",
+            manualBtn: "SHOW LOTS",
+            loadingItems: "Loading items list...",
+            itemsLoaded: "Items loaded",
+            noItemsFound: "Nothing found",
+            loadingLots: "Loading lots for",
+            lotsEmpty: "no lots available",
+            lotsFound: "lots",
+            fetchError: "Error loading lots",
+            timeoutError: "Request timeout (15 sec). Please try again.",
+            checkToken: "Please paste your API token in the field above!",
+            enterItemId: "Enter item ID",
+            thItem: "Item",
+            thPrice: "Price",
+            thAmount: "Amount",
+            thSeller: "Seller",
+            thTimeLeft: "Time left",
+            priceSymbol: "⚡",
+            hours: "h",
+            minutes: "m",
+            noLots: "Nothing found"
         }
-
-        let filtered = [...allItems];
-        
-        // фильтр по категории
-        if (currentCategory !== 'all') {
-            filtered = filtered.filter(item => item.categoryKey === currentCategory);
-        }
-        
-        // сортировка
-        if (currentSort === 'name') {
-            filtered.sort((a,b) => a.name.localeCompare(b.name));
-        } else if (currentSort === 'priceUp') {
-            filtered.sort((a,b) => (a.mockPrice || 0) - (b.mockPrice || 0));
-        } else if (currentSort === 'priceDown') {
-            filtered.sort((a,b) => (b.mockPrice || 0) - (a.mockPrice || 0));
-        }
-        
-        if (filtered.length === 0) {
-            grid.innerHTML = '<div class="no-results">🔍 Предметов в этой категории не найдено</div>';
-            return;
-        }
-        
-        grid.innerHTML = filtered.map(item => `
-            <div class="item-card" data-item='${JSON.stringify(item)}'>
-                <div class="card-header">
-                    <div class="item-icon">
-                        ${item.iconUrl ? `<img src="${item.iconUrl}" alt="icon" onerror="this.style.display='none';this.parentElement.innerHTML='📦'">` : '📦'}
-                    </div>
-                    <div class="item-name">${escapeHtml(item.name)}</div>
-                </div>
-                <div class="item-details">
-                    <span class="item-category">${item.categoryDisplay}</span>
-                    <span class="item-price">💰 ${item.mockPrice.toLocaleString()} ₽</span>
-                </div>
-                <button class="info-button" onclick="showItemInfo('${item.id}')">📜 ПОДРОБНЕЕ</button>
-            </div>
-        `).join('');
-    }
-    
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    // показ информации в модалке
-    window.showItemInfo = function(itemId) {
-        const item = allItems.find(i => i.id === itemId);
-        if (!item) return;
-        document.getElementById('modalItemName').innerHTML = `📦 ${escapeHtml(item.name)}`;
-        const infoHtml = `
-            <div class="modal-detail-line"><strong>🔑 ID предмета:</strong> ${item.id}</div>
-            <div class="modal-detail-line"><strong>📁 Категория:</strong> ${item.categoryDisplay}</div>
-            <div class="modal-detail-line"><strong>💰 Ориентир цены:</strong> ${item.mockPrice.toLocaleString()} монет</div>
-            <div class="modal-detail-line"><strong>ℹ️ Информация:</strong><br> 
-            ${item.description || 'Данные из официальной базы предметов EXBO. Реальная цена аукциона требует OAuth-запроса к eapi.stalcraft.net'}</div>
-            <div class="modal-detail-line"><strong>🖼️ Иконка:</strong> <a href="${item.iconUrl}" target="_blank" style="color:#d4af37">Открыть оригинал</a></div>
-        `;
-        document.getElementById('modalItemInfo').innerHTML = infoHtml;
-        document.getElementById('infoModal').style.display = 'flex';
     };
-    
-    // ---------- ЗАГРУЗКА ВСЕХ ПРЕДМЕТОВ ИЗ ОФИЦИАЛЬНОЙ БАЗЫ EXBO ----------
-    async function fetchAllItemsFromEXBO() {
-        const grid = document.getElementById('itemsGrid');
-        grid.innerHTML = '<div class="loader">🔗 Подключение к GitHub репозиторию EXBO...<br>⏳ Загрузка списка категорий</div>';
+
+    function t(key, params = {}) {
+        let text = translations[currentLang][key] || key;
+        for (const [k, v] of Object.entries(params)) {
+            text = text.replace(`{${k}}`, v);
+        }
+        return text;
+    }
+
+    function updateUITexts() {
+        document.getElementById('mainTitle').innerText = t('mainTitle');
+        document.getElementById('search').placeholder = t('searchPlaceholder');
+        document.getElementById('searchBtn').innerText = t('searchBtn');
+        document.getElementById('tokenLabel').innerHTML = t('tokenLabel');
+        document.getElementById('apiToken').placeholder = t('tokenPlaceholder');
+        document.getElementById('tokenWarning').innerText = t('tokenWarning');
+        document.getElementById('manualLabel').innerHTML = t('manualLabel');
+        document.getElementById('manualId').placeholder = t('manualPlaceholder');
+        document.getElementById('manualBtn').innerText = t('manualBtn');
+        document.getElementById('thItem').innerText = t('thItem');
+        document.getElementById('thPrice').innerText = t('thPrice');
+        document.getElementById('thAmount').innerText = t('thAmount');
+        document.getElementById('thSeller').innerText = t('thSeller');
+        document.getElementById('thTimeLeft').innerText = t('thTimeLeft');
         
-        try {
-            // 1. Сначала получаем список ВСЕХ категорий из папки /ru/items/
-            const categoriesResp = await fetch('https://api.github.com/repos/EXBO-Studio/stalcraft-database/contents/ru/items');
-            if (!categoriesResp.ok) throw new Error('Не удалось получить список категорий');
-            const categoriesData = await categoriesResp.json();
-            
-            const itemsPromises = [];
-            const categoryFolders = categoriesData.filter(f => f.type === 'dir').map(f => f.name);
-            
-            // 2. Проходим по каждой категории (weapon, armour, artefact и т.д.)
-            for (const category of categoryFolders) {
-                if (category === 'icons' || category === '.gitignore') continue; // пропускаем служебные
-                
-                // получаем список подкатегорий/файлов внутри категории
-                const subResp = await fetch(`https://api.github.com/repos/EXBO-Studio/stalcraft-database/contents/ru/items/${category}`);
-                if (!subResp.ok) continue;
-                const subData = await subResp.json();
-                
-                for (const subItem of subData) {
-                    if (subItem.type === 'file' && subItem.name.endsWith('.json')) {
-                        // прямой json предмета
-                        itemsPromises.push(
-                            fetch(subItem.download_url)
-                                .then(res => res.json())
-                                .then(json => {
-                                    // извлекаем название (бывает вложенным в name.lines.ru)
-                                    let itemName = json.id || 'Без имени';
-                                    if (json.name && json.name.lines && json.name.lines.ru) itemName = json.name.lines.ru;
-                                    else if (json.name && typeof json.name === 'string') itemName = json.name;
-                                    
-                                    // Определяем категорию отображения
-                                    let categoryKey = category;
-                                    let subcat = null;
-                                    if (category === 'weapon' && json.category) {
-                                        const parts = json.category.split('/');
-                                        if (parts.length > 1) subcat = parts[1];
-                                    }
-                                    
-                                    const mockPrice = generateMockPrice(json.id, categoryKey);
-                                    const iconUrl = getIconUrl(json.id, category, subcat);
-                                    
-                                    return {
-                                        id: json.id,
-                                        name: itemName,
-                                        categoryKey: categoryKey,
-                                        categoryDisplay: getCategoryDisplay(categoryKey),
-                                        mockPrice: mockPrice,
-                                        iconUrl: iconUrl,
-                                        description: json.description || `Предмет из категории "${category}" игры Сталкрафт. Полные данные в официальной БД.`
-                                    };
-                                })
-                                .catch(err => {
-                                    console.warn(`Ошибка загрузки предмета ${subItem.name}:`, err);
-                                    return null;
-                                })
-                        );
-                    } else if (subItem.type === 'dir' && category === 'weapon') {
-                        // в папке weapon есть подпапки: pistol, assault_rifle и тд.
-                        const deepResp = await fetch(`https://api.github.com/repos/EXBO-Studio/stalcraft-database/contents/ru/items/weapon/${subItem.name}`);
-                        if (!deepResp.ok) continue;
-                        const deepData = await deepResp.json();
-                        for (const deepFile of deepData) {
-                            if (deepFile.type === 'file' && deepFile.name.endsWith('.json')) {
-                                itemsPromises.push(
-                                    fetch(deepFile.download_url)
-                                        .then(res => res.json())
-                                        .then(json => {
-                                            let itemName = json.id || 'Оружие';
-                                            if (json.name && json.name.lines && json.name.lines.ru) itemName = json.name.lines.ru;
-                                            const mockPrice = generateMockPrice(json.id, 'weapon');
-                                            const iconUrl = getIconUrl(json.id, 'weapon', subItem.name);
-                                            return {
-                                                id: json.id,
-                                                name: itemName,
-                                                categoryKey: 'weapon',
-                                                categoryDisplay: getCategoryDisplay('weapon'),
-                                                mockPrice: mockPrice,
-                                                iconUrl: iconUrl,
-                                                description: `Оружие из группы ${subItem.name}. Данные из официального репозитория.`
-                                            };
-                                        }).catch(() => null)
-                                );
-                            }
-                        }
-                    }
-                }
+        if (allItems.length > 0) {
+            const container = document.getElementById('itemList');
+            if (container.innerHTML !== '' && !container.innerHTML.includes('no-results')) {
+                searchItems();
             }
-            
-            // Ждём все загрузки
-            const loadedItems = (await Promise.all(itemsPromises)).filter(item => item !== null);
-            allItems = loadedItems;
-            
-            // заполняем выпадающий список категорий уникальными
-            const categorySet = new Set(allItems.map(i => i.categoryKey));
-            const categorySelect = document.getElementById('categoryFilter');
-            categorySelect.innerHTML = '<option value="all">Все предметы</option>';
-            for (const cat of categorySet) {
-                categorySelect.innerHTML += `<option value="${cat}">${getCategoryDisplay(cat)}</option>`;
-            }
-            
-            renderItems();
-        } catch (error) {
-            console.error('Ошибка загрузки базы EXBO:', error);
-            document.getElementById('itemsGrid').innerHTML = `<div class="error-msg">❌ Ошибка загрузки данных: ${error.message}<br>⚠️ Убедитесь, что есть соединение с github.com</div>`;
+        }
+        
+        const statusDiv = document.getElementById('status');
+        if (statusDiv.innerHTML && currentItemName) {
+            fetchLots(currentItemId, currentItemName);
         }
     }
-    
-    // ---------- НАСТРОЙКА СОБЫТИЙ ----------
-    function setupEventListeners() {
-        document.getElementById('categoryFilter').addEventListener('change', (e) => {
-            currentCategory = e.target.value;
-            renderItems();
-        });
-        document.getElementById('sortByNameBtn').addEventListener('click', () => {
-            currentSort = 'name';
-            renderItems();
-        });
-        document.getElementById('sortByPriceUpBtn').addEventListener('click', () => {
-            currentSort = 'priceUp';
-            renderItems();
-        });
-        document.getElementById('sortByPriceDownBtn').addEventListener('click', () => {
-            currentSort = 'priceDown';
-            renderItems();
-        });
-        document.getElementById('resetFilters').addEventListener('click', () => {
-            currentCategory = 'all';
-            currentSort = 'none';
-            document.getElementById('categoryFilter').value = 'all';
-            renderItems();
-        });
-        
-        const modal = document.getElementById('infoModal');
-        document.getElementById('closeModalBtn').addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) modal.style.display = 'none';
+
+    async function loadEmissionInfo() {
+        const info = document.getElementById('emissionInfo');
+        try {
+            const res = await fetch('https://eapi.stalcraft.net/emission');
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+            const currentTime = Date.now() / 1000;
+            const ruData = data.find(region => region.region === 'RU');
+            if (!ruData) throw new Error('No RU region data');
+
+            const lastEmission = ruData.last_emission;
+            const diffSeconds = currentTime - lastEmission;
+            const h = Math.floor(diffSeconds / 3600);
+            const m = Math.floor((diffSeconds % 3600) / 60);
+            const s = Math.floor(diffSeconds % 60);
+
+            if (currentLang === 'ru') {
+                info.innerHTML = `Последний выброс (RU): <span style="color:#88ffaa">${h}ч ${m}м ${s}с назад</span> | Текущий статус: ${ruData.current_emission ? 'ИДЁТ ВЫБРОС' : 'Нет выброса'}`;
+            } else {
+                info.innerHTML = `Last emission (RU): <span style="color:#88ffaa">${h}h ${m}m ${s}s ago</span> | Current status: ${ruData.current_emission ? 'EMISSION ACTIVE' : 'No emission'}`;
+            }
+        } catch(e) {
+            info.innerHTML = `<span class="error">${currentLang === 'ru' ? 'Не удалось загрузить данные о выбросах' : 'Failed to load emission data'}</span>`;
+            console.error("Emission error:", e);
+        }
+    }
+
+    function startEmissionTimer() {
+        if (emissionTimerInterval) clearInterval(emissionTimerInterval);
+        loadEmissionInfo();
+        emissionTimerInterval = setInterval(loadEmissionInfo, 60000);
+    }
+
+    async function loadItems() {
+        const statusDiv = document.getElementById('status');
+        statusDiv.textContent = t('loadingItems');
+        try {
+            const res = await fetch('https://raw.githubusercontent.com/EXBO-Studio/stalcraft-database/main/ru/listing.json');
+            if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+            const data = await res.json();
+
+            allItems = data.map(item => {
+                const path = item.data || '';
+                let category = 'misc';
+                if (path.includes('/weapon/')) category = 'weapon';
+                else if (path.includes('/armor/')) category = 'armor';
+                else if (path.includes('/artefact/') || path.includes('/artifact/')) category = 'artifact';
+                else if (path.includes('/supply/')) category = 'supply';
+
+                return {
+                    id: path.split('/').pop().replace('.json', ''),
+                    name: item.name?.lines?.ru || 'Без названия',
+                    category: category
+                };
+            }).filter(i => i.name !== 'Без названия')
+              .sort((a, b) => a.name.localeCompare(b.name));
+
+            renderItems(allItems);
+            statusDiv.innerHTML = `<span class="success">${t('itemsLoaded')}: ${allItems.length}</span>`;
+        } catch (e) {
+            statusDiv.innerHTML = `<span class="error">${t('fetchError')}</span>`;
+            console.error(e);
+        }
+    }
+
+    function renderItems(items) {
+        const container = document.getElementById('itemList');
+        container.innerHTML = '';
+        if (items.length === 0) {
+            container.innerHTML = `<div class="no-results">${t('noItemsFound')}</div>`;
+            return;
+        }
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'item';
+            div.textContent = item.name;
+            div.onclick = () => fetchLots(item.id, item.name);
+            container.appendChild(div);
         });
     }
-    
-    // ---------- ЗАПУСК ----------
-    setupEventListeners();
-    fetchAllItemsFromEXBO(); // загружаем абсолютно все предметы из официальной базы
+
+    function searchItems() {
+        const query = document.getElementById('search').value.toLowerCase().trim();
+        if (!query) return renderItems(allItems);
+        renderItems(allItems.filter(i => i.name.toLowerCase().includes(query)));
+    }
+
+    function filterByCategory() {
+        const cat = document.getElementById('categoryFilter').value;
+        if (!cat) return renderItems(allItems);
+        renderItems(allItems.filter(i => i.category === cat));
+    }
+
+    async function fetchByManualId() {
+        const id = document.getElementById('manualId').value.trim();
+        if (!id) {
+            alert(t('enterItemId'));
+            return;
+        }
+        await fetchLots(id, id);
+    }
+
+    async function fetchLots(itemId, itemName) {
+        const token = document.getElementById('apiToken').value.trim();
+        if (!token) {
+            alert(t('checkToken'));
+            return;
+        }
+
+        const region = document.getElementById('region').value;
+        const statusDiv = document.getElementById('status');
+        const table = document.getElementById('lotsTable');
+        const tbody = table.querySelector('tbody');
+
+        currentItemId = itemId;
+        currentItemName = itemName;
+        statusDiv.textContent = `${t('loadingLots')} "${itemName}"... (15 sec max)`;
+        table.style.display = 'none';
+        tbody.innerHTML = '';
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+
+        try {
+            const apiUrl = `https://eapi.stalcraft.net/${region}/auction/${itemId}/lots?limit=50`;
+            const res = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                signal: controller.signal
+            });
+
+            clearTimeout(timeout);
+
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`${t('fetchError')} ${res.status}: ${errorText}`);
+            }
+
+            const data = await res.json();
+            currentLots = data.lots || [];
+
+            if (currentLots.length === 0) {
+                statusDiv.innerHTML = `<span class="success">${itemName} — ${t('lotsEmpty')}</span>`;
+                table.style.display = 'none';
+                return;
+            }
+
+            statusDiv.innerHTML = `<span class="success">${itemName} — ${currentLots.length} ${t('lotsFound')}</span>`;
+            table.style.display = 'table';
+            displayLots();
+        } catch (e) {
+            clearTimeout(timeout);
+            if (e.name === 'AbortError') {
+                statusDiv.innerHTML = `<span class="error">${t('timeoutError')}</span>`;
+            } else {
+                statusDiv.innerHTML = `<span class="error">${t('fetchError')}: ${e.message}</span>`;
+            }
+            console.error(e);
+        }
+    }
+
+    function displayLots() {
+        const tbody = document.querySelector('#lotsTable tbody');
+        tbody.innerHTML = '';
+        currentLots.forEach(lot => {
+            const row = document.createElement('tr');
+            let timeLeft = "—";
+            if (lot.timeLeft) {
+                const h = Math.floor(lot.timeLeft / 3600);
+                const m = Math.floor((lot.timeLeft % 3600) / 60);
+                timeLeft = `${h}${t('hours')} ${m}${t('minutes')}`;
+            }
+            row.innerHTML = `
+                <td>${currentItemName}</td>
+                <td class="price">${lot.price?.toLocaleString() || 0} ${t('priceSymbol')}</td>
+                <td>${lot.amount || 1}</td>
+                <td>${lot.seller || '—'}</td>
+                <td>${timeLeft}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function sortByPrice(dir) {
+        if (!currentLots.length) return;
+        currentLots.sort((a, b) => (a.price - b.price) * dir);
+        displayLots();
+    }
+
+    window.onload = () => {
+        loadItems();
+        startEmissionTimer();
+
+        document.getElementById('categoryFilter').addEventListener('change', filterByCategory);
+        document.getElementById('searchBtn').addEventListener('click', searchItems);
+        document.getElementById('manualBtn').addEventListener('click', fetchByManualId);
+        document.getElementById('sortPriceUp').addEventListener('click', () => sortByPrice(1));
+        document.getElementById('sortPriceDown').addEventListener('click', () => sortByPrice(-1));
+        
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentLang = btn.getAttribute('data-lang');
+                updateUITexts();
+                loadEmissionInfo();
+            });
+        });
+    };
+
+    window.addEventListener('beforeunload', () => {
+        if (emissionTimerInterval) clearInterval(emissionTimerInterval);
+    });
 </script>
 </body>
 </html>
